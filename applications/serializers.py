@@ -1,14 +1,17 @@
 from rest_framework import serializers
 from .models import Application, ApplicationAnswer
+
 class ApplicationListSerializer(serializers.ModelSerializer):
     class Meta:
         model= Application
-        fields = ['id','job_posting','status','applied_at']
-        read_only_fields = ('id', 'job_posting', 'applied_at')
+        fields = ['id','job_posting','status','updated_at']
+        read_only_fields = ('id', 'job_posting', 'updated_at')
 
     def validate_status(self, data):
         curr_status = self.instance.status
         request = self.context.get('request')
+
+
 
         if curr_status in ['hired', 'rejected', 'withdrawn']:
             raise serializers.ValidationError("the status has been finalized and cannot be changed")
@@ -20,6 +23,9 @@ class ApplicationListSerializer(serializers.ModelSerializer):
         if data in ['offer'] and request.user.profile.role=='recruiter':
             if curr_status!="interview" :
                 raise serializers.ValidationError("only the interview status can get offer")
+
+            if self.instance.interviews.exclude(status='completed').exists() or not self.instance.interviews.exists():
+                raise serializers.ValidationError("The interview must be completed before making an offer.")
 
         if data in ['hired'] and request.user.profile.role=='recruiter':
             if curr_status !="offer":
@@ -37,7 +43,9 @@ class ApplicationListSerializer(serializers.ModelSerializer):
 
         if curr_status == data:
             raise serializers.ValidationError("the status cannot be changed as previous data")
-            
+
+
+        
         return data
 
 
@@ -80,8 +88,7 @@ class ApplicationPostSerializer(serializers.ModelSerializer):
         request= self.context.get('request')
         user = request.user
 
-        
-
+    
         existing_application = Application.objects.filter(job_posting= jobs, candidate= user)
    
         if existing_application.exists():
