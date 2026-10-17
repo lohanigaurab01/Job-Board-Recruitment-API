@@ -110,13 +110,7 @@ curl -X GET http://127.0.0.1:8000/api/jobs/ \
 python manage.py test
 ```
 
-## Roadmap
 
-- [ ] Pagination, search and filtering on job listings
-- [ ] Resume / file upload for applications
-- [ ] Email notifications for application and interview updates
-- [ ] API documentation with Swagger / drf-spectacular
-- [ ] Docker support
 
 ## Contributing
 
